@@ -2,13 +2,16 @@
 from flask_jwt_extended import create_access_token , jwt_required, get_jwt_identity
 from datetime import datetime
 from flask import url_for
-from app.models import User, Event
-from app import db
+from flask_mail import Message
+from app.models import User, Event , HelpRequest
+from app import db , mail
+from app.utils import role_required
 
 bp = Blueprint('api', __name__, url_prefix='/api')
 
 @bp.route('/events', methods=['POST'])
 @jwt_required()
+@role_required('user')
 def create_event():
     user_id = get_jwt_identity()
     data = request.get_json()
@@ -37,6 +40,7 @@ def create_event():
 
 @bp.route('/events', methods=['GET'])
 @jwt_required()
+@role_required('user')
 def list_events():
     user_id = get_jwt_identity()
     events = Event.query.filter_by(user_id=user_id).all()
@@ -51,6 +55,7 @@ def list_events():
 
 @bp.route('/events/<int:event_id>', methods=['PATCH'])
 @jwt_required()
+@role_required('user')
 def update_event(event_id):
     user_id = get_jwt_identity()
     event = Event.query.filter_by(id=event_id, user_id=user_id).first()
@@ -70,6 +75,7 @@ def update_event(event_id):
 
 @bp.route('/events/<int:event_id>', methods=['DELETE'])
 @jwt_required()
+@role_required('user')
 def delete_event(event_id):
     user_id = get_jwt_identity()
     event = Event.query.filter_by(id=event_id, user_id=user_id).first()
@@ -116,8 +122,11 @@ def password_reset_request():
     token = user.get_reset_token()
     reset_url = url_for('api.password_reset', token=token, _external=True)
 
-    # TODO: send reset_url via email here (using an email library like Flask-Mail)
-    print(f"Password reset link (send this by email): {reset_url}")
+    msg = Message(subject="Password Reset Request",
+                  recipients=[email],
+                  body=f"To reset your password, visit the following link:\n{reset_url}\n\n"
+                       "If you did not request a password reset, please ignore this email.")
+    mail.send(msg)
 
     return jsonify({"message": "If your email is registered, you'll receive a password reset link."}), 200
 
@@ -136,3 +145,41 @@ def password_reset(token):
     db.session.commit()
 
     return jsonify({"message": "Your password has been updated"}), 200
+
+
+@bp.route('/helpdesk/submit', methods=['POST'])
+@jwt_required()
+@role_required('user')
+def submit_help_request():
+    data = request.get_json()
+    message = data.get('message')
+    if not message:
+        return jsonify({'error': 'Message is required'}), 400
+    user_id = get_jwt_identity()
+    help_request = HelpRequest(user_id=user_id, message=message)
+    db.session.add(help_request)
+    db.session.commit()
+    return jsonify({'message': 'Request submitted'}), 201
+
+@bp.route('/helpdesk/requests', methods=['GET'])
+@jwt_required()
+@role_required('helpdesk')
+def view_help_requests():
+    requests = HelpRequest.query.all()
+    return jsonify([{
+        'id': req.id,
+        'user_id': req.user_id,
+        'message': req.message,
+        'response': req.response
+    } for req in requests]), 200
+
+@bp.route('/helpdesk/respond/<int:request_id>', methods=['POST'])
+@jwt_required()
+@role_required('helpdesk')
+def respond_to_help_request(request_id):
+    data = request.get_json()
+    response = data.get('response')
+    req = HelpRequest.query.get_or_404(request_id)
+    req.response = response
+    db.session.commit()
+    return jsonify({'message': 'Response sent'}), 200
