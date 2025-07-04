@@ -98,16 +98,18 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({"error": "Invalid username or password"}), 401
 
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=str(user.id))
 
     return jsonify({
         "access_token": access_token,
         "user": {
             "id": user.id,
             "username": user.username,
-            "email": user.email
+            "email": user.email,
+            "role": user.role
         }
     }), 200
+
 @bp.route('/password-reset-request', methods=['POST'])
 def password_reset_request():
     data = request.get_json()
@@ -163,9 +165,11 @@ def submit_help_request():
 
 @bp.route('/helpdesk/requests', methods=['GET'])
 @jwt_required()
-@role_required('helpdesk')
 def view_help_requests():
+    current_user = get_jwt_identity()
+    print("JWT identity:", current_user)
     requests = HelpRequest.query.all()
+    print(f"Found {len(requests)} help requests")
     return jsonify([{
         'id': req.id,
         'user_id': req.user_id,
