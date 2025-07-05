@@ -122,15 +122,24 @@ def password_reset_request():
         return jsonify({"message": "If your email is registered, you'll receive a password reset link."}), 200
 
     token = user.get_reset_token()
-    reset_url = url_for('api.password_reset', token=token, _external=True)
+    frontend_reset_url = f"http://localhost:5173/password-reset/{token}"
 
-    msg = Message(subject="Password Reset Request",
-                  recipients=[email],
-                  body=f"To reset your password, visit the following link:\n{reset_url}\n\n"
-                       "If you did not request a password reset, please ignore this email.")
+    msg = Message(
+        subject="Password Reset Request",
+        recipients=[email],
+        body=f"To reset your password, visit the following link:\n{frontend_reset_url}\n\n"
+             "If you did not request a password reset, please ignore this email."
+    )
     mail.send(msg)
 
     return jsonify({"message": "If your email is registered, you'll receive a password reset link."}), 200
+
+@bp.route('/password-reset/<token>', methods=['GET'])
+def verify_token(token):
+    user = User.verify_reset_token(token)
+    if not user:
+        return jsonify({"error": "Invalid or expired token"}), 400
+    return jsonify({"message": "Token is valid"}), 200
 
 @bp.route('/password-reset/<token>', methods=['POST'])
 def password_reset(token):
@@ -166,16 +175,17 @@ def submit_help_request():
 @bp.route('/helpdesk/requests', methods=['GET'])
 @jwt_required()
 def view_help_requests():
-    current_user = get_jwt_identity()
-    print("JWT identity:", current_user)
     requests = HelpRequest.query.all()
     print(f"Found {len(requests)} help requests")
+
     return jsonify([{
         'id': req.id,
         'user_id': req.user_id,
+        'user_email': req.user.email if req.user else None,
         'message': req.message,
         'response': req.response
     } for req in requests]), 200
+
 
 @bp.route('/helpdesk/respond/<int:request_id>', methods=['POST'])
 @jwt_required()

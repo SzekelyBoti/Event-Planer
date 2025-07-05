@@ -6,6 +6,7 @@ import Helpdesk from './pages/Helpdesk.jsx';
 import Dashboard from "./pages/Userdesk.jsx";
 import SubmitTicket from "./components/SubmitTicket.jsx"
 import PasswordResetRequest from './components/PasswordResetRequest';
+import PasswordReset from "./components/PasswordReset.jsx";
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
@@ -15,6 +16,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/helpdesk" element={<Helpdesk />} />
             <Route path="/submit-ticket" element={<SubmitTicket />} />
             <Route path="/reset-password-request" element={<PasswordResetRequest />} />
+            <Route path="/password-reset/:token" element={<PasswordReset />} />
         </Routes>
     </BrowserRouter>
 );
