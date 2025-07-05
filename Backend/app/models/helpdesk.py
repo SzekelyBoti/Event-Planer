@@ -7,4 +7,5 @@ class HelpRequest(db.Model):
     message = db.Column(db.Text, nullable=False)
     response = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    user = db.relationship('User', backref='help_requests')
 
