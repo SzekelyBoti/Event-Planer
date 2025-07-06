@@ -1,6 +1,8 @@
-﻿from flask import Blueprint, request, jsonify
+﻿import random
+
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token , jwt_required, get_jwt_identity
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import url_for
 from flask_mail import Message
 from app.models import User, Event , HelpRequest
@@ -130,7 +132,33 @@ def login():
             "role": user.role
         }
     }), 200
+@bp.route('/mfa-resend', methods=['POST'])
+def resend_mfa():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
 
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if not user.mfa_enabled:
+        return jsonify({"error": "MFA not enabled for this user"}), 400
+
+    code = str(random.randint(100000, 999999))
+    user.mfa_code = code
+    user.mfa_expiry = datetime.utcnow() + timedelta(minutes=5)
+    db.session.commit()
+    
+    msg = Message(
+        subject="Your MFA Code",
+        recipients=[user.email],
+        body=f"Your MFA code is: {code}. It will expire in 5 minutes."
+    )
+    mail.send(msg)
+
+    return jsonify({"message": "MFA code resent"}), 200
 
 @bp.route('/mfa-verify', methods=['POST'])
 def mfa_verify():

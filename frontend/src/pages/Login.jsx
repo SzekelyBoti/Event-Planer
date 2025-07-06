@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react';
 import { Link } from 'react-router-dom';
 const apiUrl = import.meta.env.VITE_API_URL;
+import '../App.css';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -133,12 +134,12 @@ export default function Login() {
   };
 
   return (
-      <div className="login-container" style={{ maxWidth: 400, margin: 'auto', padding: 20 }}>
+      <div className="app-container">
         {!mfaRequired ? (
             <>
               <h2>Login</h2>
               <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: 12 }}>
+                <div>
                   <label>Username</label>
                   <input
                       type="text"
@@ -149,7 +150,7 @@ export default function Login() {
                       disabled={loading}
                   />
                 </div>
-                <div style={{ marginBottom: 12 }}>
+                <div>
                   <label>Password</label>
                   <input
                       type="password"
@@ -160,7 +161,7 @@ export default function Login() {
                       disabled={loading}
                   />
                 </div>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
+                {error && <p className="error">{error}</p>}
                 <button type="submit" disabled={loading}>
                   {loading ? 'Logging in...' : 'Login'}
                 </button>
@@ -188,10 +189,10 @@ export default function Login() {
                   {loading ? 'Verifying...' : 'Verify'}
                 </button>
               </form>
-              <button onClick={handleResendMfa} disabled={resending || loading} style={{ marginTop: 10 }}>
+              <button onClick={handleResendMfa} disabled={resending || loading}>
                 {resending ? 'Resending...' : 'Resend Code'}
               </button>
-              {mfaError && <p style={{ color: 'red' }}>{mfaError}</p>}
+              {mfaError && <p>{mfaError}</p>}
             </>
         )}
       </div>

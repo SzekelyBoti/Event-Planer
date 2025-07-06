@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../App.css';
 
 function SubmitTicket() {
     const [message, setMessage] = useState("");
@@ -19,6 +20,7 @@ function SubmitTicket() {
     };
 
     return (
+        <div className="app-container">
         <form onSubmit={handleSubmit}>
             <h2>Submit Helpdesk Ticket</h2>
             <textarea
@@ -31,6 +33,7 @@ function SubmitTicket() {
             <button type="submit">Submit</button>
             <button type="button" onClick={() => navigate('/dashboard')}>Back</button>
         </form>
+        </div>
     );
 }
 export default SubmitTicket;

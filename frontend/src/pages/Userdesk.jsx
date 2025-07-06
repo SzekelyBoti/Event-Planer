@@ -1,6 +1,7 @@
 ﻿import { jwtDecode } from "jwt-decode";
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../App.css';
 
 export default function Dashboard() {
     const [user, setUser] = useState({});
@@ -102,7 +103,7 @@ export default function Dashboard() {
     if (error) return <div>Error: {error}</div>;
 
     return (
-        <div>
+        <div className="app-container">
             <h1>Welcome, {user.username || user.email || "User"}!</h1>
             <button onClick={() => navigate('/submit-ticket')}>Submit Helpdesk Ticket</button>
             <h2>Your Events</h2>

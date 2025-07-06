@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import '../App.css';
 
 function PasswordReset() {
     const { token } = useParams();
@@ -56,7 +57,7 @@ function PasswordReset() {
     }
 
     return (
-        <div>
+        <div className="app-container">
             <h2>Reset your password</h2>
             <form onSubmit={handleSubmit}>
                 <input
