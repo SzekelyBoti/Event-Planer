@@ -3,6 +3,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import relationship
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
+import random
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -12,6 +13,9 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=True)
     password_hash = db.Column(db.String(128), nullable=False)
     role = db.Column(db.String(20), default='user')
+    mfa_enabled = db.Column(db.Boolean, default=True)
+    mfa_code = db.Column(db.String(6), nullable=True)
+    mfa_expiry = db.Column(db.DateTime, nullable=True)
 
     events = relationship("Event", back_populates="user", cascade="all, delete-orphan")
 

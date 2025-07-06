@@ -91,12 +91,63 @@ def login():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+
     if not username or not password:
         return jsonify({"error": "Username and password are required"}), 400
 
     user = User.query.filter_by(username=username).first()
     if not user or not user.check_password(password):
         return jsonify({"error": "Invalid username or password"}), 401
+
+    if user.mfa_enabled:
+        import random
+        from datetime import datetime, timedelta
+
+        code = str(random.randint(100000, 999999))
+        user.mfa_code = code
+        user.mfa_expiry = datetime.utcnow() + timedelta(minutes=5)
+        db.session.commit()
+
+        msg = Message(
+            subject="Your MFA Code",
+            recipients=[user.email],
+            body=f"Your MFA code is: {code}. It will expire in 5 minutes."
+        )
+        mail.send(msg)
+
+        return jsonify({
+            "mfa_required": True,
+            "user_id": user.id
+        }), 200
+    access_token = create_access_token(identity=str(user.id))
+
+    return jsonify({
+        "access_token": access_token,
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role
+        }
+    }), 200
+
+
+@bp.route('/mfa-verify', methods=['POST'])
+def mfa_verify():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    code = data.get('code')
+
+    user = User.query.get(user_id)
+    if not user or user.mfa_code != code:
+        return jsonify({"error": "Invalid MFA code"}), 401
+
+    if datetime.utcnow() > user.mfa_expiry:
+        return jsonify({"error": "MFA code expired"}), 401
+
+    user.mfa_code = None
+    user.mfa_expiry = None
+    db.session.commit()
 
     access_token = create_access_token(identity=str(user.id))
 
