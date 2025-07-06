@@ -119,8 +119,6 @@ def login():
             "mfa_required": True,
             "user_id": user.id
         }), 200
-
-    # No MFA, normal login
     access_token = create_access_token(identity=str(user.id))
 
     return jsonify({
