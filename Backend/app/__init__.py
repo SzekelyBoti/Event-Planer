@@ -4,11 +4,12 @@ from flask_jwt_extended import JWTManager
 from flask_mail import Mail
 import os
 from flask_cors import CORS
+from config import config_dict
 
 db = SQLAlchemy()
 mail = Mail()
 
-def create_app():
+def create_app(config_name='default'):
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///eventplanner.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -23,6 +24,7 @@ def create_app():
     app.config['MAIL_USE_SSL'] = False
     app.config['MAIL_USERNAME'] = None
     app.config['MAIL_PASSWORD'] = None
+    app.config.from_object(config_dict[config_name])
 
     CORS(app, supports_credentials=True, expose_headers=['Authorization'], allow_headers=['Authorization', 'Content-Type'])
 
