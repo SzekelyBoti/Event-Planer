@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../App.css';
 
 function PasswordResetRequest() {
     const [email, setEmail] = useState('');
@@ -26,7 +27,7 @@ function PasswordResetRequest() {
     };
 
     return (
-        <div>
+        <div className="app-container">
             <h2>Request Password Reset</h2>
             <form onSubmit={handleRequest}>
                 <input

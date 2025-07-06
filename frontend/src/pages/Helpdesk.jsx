@@ -1,4 +1,5 @@
 ﻿import React, { useEffect, useState } from 'react';
+import '../App.css'
 
 const Helpdesk = () => {
     const [requests, setRequests] = useState([]);
@@ -67,7 +68,7 @@ const Helpdesk = () => {
     };
 
     return (
-        <div>
+        <div className="app-container">
             <h2>Helpdesk Requests</h2>
             {requests.length === 0 ? (
                 <p>No requests found.</p>
